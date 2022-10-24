@@ -8,13 +8,13 @@ import java.sql.DriverManager;
 
 public class DataHelperBD {
     @SneakyThrows
-    public static String getValidCode(String login) {
+    public static String getValidCode(DataHelper.AuthInfo userData) {
         var codeSQL = "SELECT code FROM auth_codes WHERE (user_id = ALL(SELECT id FROM users WHERE login = ?)) ORDER BY created DESC LIMIT 1;";
         var runner = new QueryRunner();
         try (
                 var conn = DriverManager.getConnection("jdbc:mysql://localhost:3306/app", "app", "pass");
         ) {
-            var validCode = runner.query(conn, codeSQL, new ScalarHandler<>(), "vasy");
+            var validCode = runner.query(conn, codeSQL, new ScalarHandler<>(), userData.getLogin());
             return validCode.toString();
         }
     }

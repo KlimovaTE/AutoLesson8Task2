@@ -1,15 +1,15 @@
 package test;
 
-import data.DBUtils;
+import Utils.APIUtils;
+import Utils.DBUtils;
+import data.DataHelper;
 import data.DataHelperBD;
 import org.junit.jupiter.api.*;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-
-class  MobileBankApiTest {
-
-    DBUtils dBUtils = new DBUtils();
+class MobileBankApiTest {
+    private static final String token = APIUtils.shouldReturnToken(DataHelper.getFirstAuthInfo());
 
     @AfterAll
     public static void setClose() {
@@ -21,86 +21,91 @@ class  MobileBankApiTest {
 
     @Test
     public void shouldInternalTransferToFirstCard() {
-        DBUtils dBUtils = new DBUtils();
-        String cardFrom = "5559 0000 0000 0002";
-        String cardTo = "5559 0000 0000 0001";
+        String cardFrom = DataHelper.getCardFullNumberFirstUser(1);
+        String cardTo = DataHelper.getCardFullNumberFirstUser(0);
         Integer amount = 100;
-        int cardFromBalanceBeforeTransfer = dBUtils.shouldGetBalanceCard(cardFrom);
-        int cardToBalanceBeforeTransfer = dBUtils.shouldGetBalanceCard(cardTo);
-        dBUtils.shouldTransfer(cardFrom, cardTo, amount, dBUtils.shouldReturnToken("vasya"));
-        int cardFromBalanceAfterTransfer = dBUtils.shouldGetBalanceCard(cardFrom);
-        int cardToBalanceAfterTransfer = dBUtils.shouldGetBalanceCard(cardTo);
+        int cardFromBalanceBeforeTransfer = DBUtils.shouldGetBalanceCard(cardFrom);
+        int cardToBalanceBeforeTransfer = DBUtils.shouldGetBalanceCard(cardTo);
+        APIUtils.shouldTransfer(cardFrom, cardTo, amount, token);
+        int cardFromBalanceAfterTransfer = DBUtils.shouldGetBalanceCard(cardFrom);
+        int cardToBalanceAfterTransfer = DBUtils.shouldGetBalanceCard(cardTo);
         assertEquals(cardFromBalanceBeforeTransfer - amount * 100, cardFromBalanceAfterTransfer);
         assertEquals(cardToBalanceBeforeTransfer + amount * 100, cardToBalanceAfterTransfer);
-        dBUtils.shouldSetBalance();
+        DBUtils.shouldSetBalance(cardFrom, cardFromBalanceBeforeTransfer);
+        DBUtils.shouldSetBalance(cardTo, cardToBalanceBeforeTransfer);
     }
 
     @Test
     public void shouldInternalTransferToSecondCard() {
-        DBUtils dBUtils = new DBUtils();
-        String cardFrom = "5559 0000 0000 0001";
-        String cardTo = "5559 0000 0000 0002";
+        String cardFrom = DataHelper.getCardFullNumberFirstUser(0);
+        String cardTo = DataHelper.getCardFullNumberFirstUser(1);
         Integer amount = 500;
-        int cardFromBalanceBeforeTransfer = dBUtils.shouldGetBalanceCard(cardFrom);
-        int cardToBalanceBeforeTransfer = dBUtils.shouldGetBalanceCard(cardTo);
-        dBUtils.shouldTransfer(cardFrom, cardTo, amount, dBUtils.shouldReturnToken("vasya"));
-        int cardFromBalanceAfterTransfer = dBUtils.shouldGetBalanceCard(cardFrom);
-        int cardToBalanceAfterTransfer = dBUtils.shouldGetBalanceCard(cardTo);
+        int cardFromBalanceBeforeTransfer = DBUtils.shouldGetBalanceCard(cardFrom);
+        int cardToBalanceBeforeTransfer = DBUtils.shouldGetBalanceCard(cardTo);
+        APIUtils.shouldTransfer(cardFrom, cardTo, amount, token);
+        int cardFromBalanceAfterTransfer = DBUtils.shouldGetBalanceCard(cardFrom);
+        int cardToBalanceAfterTransfer = DBUtils.shouldGetBalanceCard(cardTo);
         assertEquals(cardFromBalanceBeforeTransfer - amount * 100, cardFromBalanceAfterTransfer);
         assertEquals(cardToBalanceBeforeTransfer + amount * 100, cardToBalanceAfterTransfer);
-        dBUtils.shouldSetBalance();
+        DBUtils.shouldSetBalance(cardFrom, cardFromBalanceBeforeTransfer);
+        DBUtils.shouldSetBalance(cardTo, cardToBalanceBeforeTransfer);
     }
 
     @Test
-    public void shouldTransferToVasyaFirstCard() {
-        DBUtils dBUtils = new DBUtils();
-        String cardFrom = "5559 0000 0000 0008";
-        String cardTo = "5559 0000 0000 0001";
+    public void shouldTransferToFirstUserFirstCard() {
+        String cardFrom = DataHelper.getCardFullNumberOtherUser(0);
+        String cardTo = DataHelper.getCardFullNumberFirstUser(0);
         Integer amount = 5000;
-        int cardToBalanceBeforeTransfer = dBUtils.shouldGetBalanceCard(cardTo);
-        dBUtils.shouldTransfer(cardFrom, cardTo, amount, dBUtils.shouldReturnToken("vasya"));
-        int cardToBalanceAfterTransfer = dBUtils.shouldGetBalanceCard(cardTo);
+        int cardToBalanceBeforeTransfer = DBUtils.shouldGetBalanceCard(cardTo);
+        APIUtils.shouldTransfer(cardFrom, cardTo, amount, token);
+        int cardToBalanceAfterTransfer = DBUtils.shouldGetBalanceCard(cardTo);
         assertEquals(cardToBalanceBeforeTransfer + amount * 100, cardToBalanceAfterTransfer);
-        dBUtils.shouldSetBalance();
+        DBUtils.shouldSetBalance(cardTo, cardToBalanceBeforeTransfer);
     }
 
     @Test
-    public void shouldTransferToVasyaSecondCard() {
-        DBUtils dBUtils = new DBUtils();
-        String cardFrom = "5559 0000 0000 0008";
-        String cardTo = "5559 0000 0000 0002";
+    public void shouldTransferToFirstUserSecondCard() {
+        String cardFrom = DataHelper.getCardFullNumberOtherUser(0);
+        String cardTo = DataHelper.getCardFullNumberFirstUser(1);
         Integer amount = 5000;
-        int cardToBalanceBeforeTransfer = dBUtils.shouldGetBalanceCard(cardTo);
-        dBUtils.shouldTransfer(cardFrom, cardTo, amount, dBUtils.shouldReturnToken("vasya"));
-        int cardToBalanceAfterTransfer = dBUtils.shouldGetBalanceCard(cardTo);
+        int cardToBalanceBeforeTransfer = DBUtils.shouldGetBalanceCard(cardTo);
+        APIUtils.shouldTransfer(cardFrom, cardTo, amount, token);
+        int cardToBalanceAfterTransfer = DBUtils.shouldGetBalanceCard(cardTo);
         assertEquals(cardToBalanceBeforeTransfer + amount * 100, cardToBalanceAfterTransfer);
-        dBUtils.shouldSetBalance();
+        DBUtils.shouldSetBalance(cardTo, cardToBalanceBeforeTransfer);
     }
 
     @Test
     public void shouldNotTransferMinusAmount() {
-        DBUtils dBUtils = new DBUtils();
-        String cardFrom = "5559 0000 0000 0008";
-        String cardTo = "5559 0000 0000 0002";
+        String cardFrom = DataHelper.getCardFullNumberFirstUser(1);
+        String cardTo = DataHelper.getCardFullNumberFirstUser(0);
         Integer amount = -5000;
-        int cardToBalanceBeforeTransfer = dBUtils.shouldGetBalanceCard(cardTo);
-        dBUtils.shouldTransfer(cardFrom, cardTo, amount, dBUtils.shouldReturnToken("vasya"));
-        int cardToBalanceAfterTransfer = dBUtils.shouldGetBalanceCard(cardTo);
+        int cardFromBalanceBeforeTransfer = DBUtils.shouldGetBalanceCard(cardFrom);
+        int cardToBalanceBeforeTransfer = DBUtils.shouldGetBalanceCard(cardTo);
+        APIUtils.shouldTransfer(cardFrom, cardTo, amount, token);
+        int cardFromBalanceAfterTransfer = DBUtils.shouldGetBalanceCard(cardFrom);
+        int cardToBalanceAfterTransfer = DBUtils.shouldGetBalanceCard(cardTo);
+        assertEquals(cardFromBalanceBeforeTransfer, cardFromBalanceAfterTransfer);
         assertEquals(cardToBalanceBeforeTransfer, cardToBalanceAfterTransfer);
-        dBUtils.shouldSetBalance();
+        DBUtils.shouldSetBalance(cardFrom, cardFromBalanceBeforeTransfer);
+        DBUtils.shouldSetBalance(cardTo, cardToBalanceBeforeTransfer);
     }
 
     @Test
     public void shouldNotTransferAmountOverBalance() {
-        DBUtils dBUtils = new DBUtils();
-        String cardFrom = "5559 0000 0000 0001";
-        String cardTo = "5559 0000 0000 0002";
-        Integer amount = 2_000_000;
-        int cardToBalanceBeforeTransfer = dBUtils.shouldGetBalanceCard(cardTo);
-        dBUtils.shouldTransfer(cardFrom, cardTo, amount, dBUtils.shouldReturnToken("vasya"));
-        int cardToBalanceAfterTransfer = dBUtils.shouldGetBalanceCard(cardTo);
+        String cardFrom = DataHelper.getCardFullNumberFirstUser(1);
+        String cardTo = DataHelper.getCardFullNumberFirstUser(0);
+        int cardFromBalanceBeforeTransfer = DBUtils.shouldGetBalanceCard(cardFrom);
+        int cardToBalanceBeforeTransfer = DBUtils.shouldGetBalanceCard(cardTo);
+        Integer amount = cardFromBalanceBeforeTransfer / 100 + 1;
+        APIUtils.shouldTransfer(cardFrom, cardTo, amount, token);
+        int cardFromBalanceAfterTransfer = DBUtils.shouldGetBalanceCard(cardFrom);
+        int cardToBalanceAfterTransfer = DBUtils.shouldGetBalanceCard(cardTo);
+        assertEquals(cardFromBalanceBeforeTransfer, cardFromBalanceAfterTransfer);
         assertEquals(cardToBalanceBeforeTransfer, cardToBalanceAfterTransfer);
-        dBUtils.shouldSetBalance();
+        DBUtils.shouldSetBalance(cardFrom, cardFromBalanceBeforeTransfer);
+        DBUtils.shouldSetBalance(cardTo, cardToBalanceBeforeTransfer);
     }
 }
+
 
